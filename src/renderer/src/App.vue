@@ -44,14 +44,14 @@
         <el-button @click="clearserialData">清空数据</el-button>
       </div>
     </div>
-    <div class="card">
+    <!-- <div class="card">
       <h2>WebSocket 接口</h2>
       <p>其他应用可以通过 WebSocket 连接获取串口数据：</p>
       <div class="ws-info">
         <strong>WebSocket 服务器地址:</strong> ws://localhost:8080<br>
-        <!-- <strong>当前客户端连接数:</strong> <span id="ws-client-count">{{ wsClientCount }}</span> -->
+        <strong>当前客户端连接数:</strong> <span id="ws-client-count">{{ counter.wsCount }}</span>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -61,7 +61,7 @@ import { serialPort, serialData } from './types'
 import { ElMessage } from 'element-plus'
 
 const refreshPort = ref<boolean>(false)
-const wsClientCount = ref<number>(0)
+
 const selectedPort = ref<string>()
 const isConnect = ref(false)
 const serialPortList = ref<serialPort[]>([])

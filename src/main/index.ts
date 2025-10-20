@@ -4,12 +4,13 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { SerialPort } from 'serialport';
 import { SerialPortInfo } from './types'
+import {formatReverseNumber} from './utils'
 const WebSocket = require('ws');
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 1600,
-    height: 1250,
+    height: 1000,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -35,13 +36,15 @@ function createWindow(): void {
   }
 }
 
+
+
 const serialConnections = new Map();
 let wss = null;
 const wsClients = new Set();
 
 // 启动 WebSocket 服务器
 function startWebSocketServer() {
-  wss = new WebSocket.Server({ port: 8080 });
+  const wss = new WebSocket.Server({ port: 8080 });
 
   wss.on('connection', (ws) => {
     console.log('新的 WebSocket 客户端连接');
@@ -63,7 +66,7 @@ function startWebSocketServer() {
 
 function broadcastToClients(data) {
   const message = JSON.stringify(data);
-  wsClients.forEach(client => {
+  wsClients.forEach((client: any) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(message);
     }
@@ -77,7 +80,7 @@ app.whenReady().then(() => {
   })
 
   //得到串口列表
-  ipcMain.handle('getAvailableSerialPort', async () => {
+  ipcMain.handle('getAvailableSerialPort', async (event) => {
     try {
       const ports: Array<SerialPortInfo> = await SerialPort.list()
       return ports.map((item: SerialPortInfo) => {
@@ -103,7 +106,7 @@ app.whenReady().then(() => {
           }
         })
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error(`断开串口 ${portPath} 失败:`, error)
       return { success: false, message: error.message }
     }
@@ -131,15 +134,12 @@ app.whenReady().then(() => {
             const timestamp = new Date().toISOString();
             const serialData = {
               port: path,
-              data: data.toString('ascii'),
+              data: formatReverseNumber(data.toString('ascii')),
               timestamp
             };
             event.sender.send('serial-data', serialData);
             // 广播到 WebSocket 客户端
-            broadcastToClients({
-              type: 'data',
-              data: serialData
-            });
+            broadcastToClients(serialData.data);
           });
 
           // 监听错误
